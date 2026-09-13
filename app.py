@@ -41,7 +41,7 @@ def seed():
     for d in docs:
         r=requests.put(f"{DB_URL}/{d['_id']}",json=d,timeout=10)
         if r.status_code not in (201,202,409): raise RuntimeError(r.text)
-    for fields,name in [(["tipo","ativo"],"idx_tipo_ativo"),(["tipo","email"],"idx_tipo_email"),(["tipo","cliente_id"],"idx_tipo_cliente"),(["tipo","categoria"],"idx_tipo_categoria")]:
+    for fields,name in [(["tipo","ativo"],"idx_tipo_ativo"),(["tipo","email"],"idx_tipo_email"),(["tipo","cliente_id"],"idx_tipo_cliente"),(["tipo","categoria"],"idx_tipo_categoria"),(["tipo","ativo","categoria","preco"],"idx_produtos_categoria_preco")]:
         couch("POST","/_index",json={"index":{"fields":fields},"name":name,"type":"json"})
 
 def login_required(fn):
@@ -54,8 +54,53 @@ def login_required(fn):
 
 @app.route('/')
 def catalogo():
-    ps=find({"tipo":"produto","ativo":True},["_id","nome","categoria","preco","estoque","ativo"]); ps.sort(key=lambda x:x['nome'])
-    return render_template('catalogo.html',produtos=ps)
+    categoria = request.args.get("categoria", "").strip()
+    preco_max = request.args.get("preco_max", "").strip()
+
+    selector = {
+        "tipo": "produto",
+        "ativo": True
+    }
+
+    if categoria:
+        selector["categoria"] = categoria
+
+    if preco_max:
+        try:
+            selector["preco"] = {"$lte": float(preco_max)}
+        except ValueError:
+            preco_max = ""
+
+    campos = [
+        "_id",
+        "nome",
+        "categoria",
+        "preco",
+        "estoque",
+        "ativo"
+    ]
+
+    ps = find(selector, campos)
+    ps.sort(key=lambda x: x["nome"])
+
+    todos = find(
+        {"tipo": "produto", "ativo": True},
+        ["_id", "categoria"]
+    )
+
+    categorias = sorted({
+        p["categoria"]
+        for p in todos
+        if p.get("categoria")
+    })
+
+    return render_template(
+        "catalogo.html",
+        produtos=ps,
+        categorias=categorias,
+        categoria_selecionada=categoria,
+        preco_max=preco_max
+    )
 
 @app.post('/carrinho/adicionar/<path:produto_id>')
 def adicionar(produto_id):

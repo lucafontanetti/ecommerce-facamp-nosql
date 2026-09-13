@@ -3,6 +3,41 @@
 {% block content %}
 <h1>Catálogo</h1>
 
+<form method="get" action="{{ url_for('catalogo') }}" class="filtros">
+    <div class="filtro-campo">
+        <label for="categoria">Categoria</label>
+        <select name="categoria" id="categoria">
+            <option value="">Todas</option>
+
+            {% for categoria in categorias %}
+                <option value="{{ categoria }}"
+                    {% if categoria == categoria_selecionada %}selected{% endif %}>
+                    {{ categoria }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filtro-campo">
+        <label for="preco_max">Preço máximo</label>
+        <input
+            type="number"
+            name="preco_max"
+            id="preco_max"
+            min="0"
+            step="0.01"
+            placeholder="Ex.: 200"
+            value="{{ preco_max }}"
+        >
+    </div>
+
+    <button type="submit" class="btn">Filtrar</button>
+
+    <a href="{{ url_for('catalogo') }}" class="btn limpar-filtro">
+        Limpar
+    </a>
+</form>
+
 <div class="grid">
     {% for p in produtos %}
     <div class="card">
@@ -39,6 +74,9 @@
         </form>
 
     </div>
+
+    {% else %}
+        <p>Nenhum produto encontrado com esses filtros.</p>
     {% endfor %}
 </div>
 
