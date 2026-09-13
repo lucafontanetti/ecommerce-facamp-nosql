@@ -1,1 +1,45 @@
-{% extends "base.html" %}{% block content %}<h1>Catálogo</h1><div class="grid">{% for p in produtos %}<div class="card"><h3>{{p.nome}}</h3><p>{{p.categoria}}</p><p class="price">R$ {{"%.2f"|format(p.preco)}}</p><p>Estoque: {{p.estoque}}</p><form method="post" action="{{url_for('adicionar',produto_id=p._id)}}"><button class="btn">Adicionar</button></form></div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Catálogo</h1>
+
+<div class="grid">
+    {% for p in produtos %}
+    <div class="card">
+
+        {% if p._id == 'produto:mochila' %}
+            <img src="{{ url_for('static', filename='images/mochila.png') }}"
+                 alt="Mochila Executiva"
+                 class="produto-img">
+
+        {% elif p._id == 'produto:mouse' %}
+            <img src="{{ url_for('static', filename='images/mouse.png') }}"
+                 alt="Mouse Sem Fio"
+                 class="produto-img">
+
+        {% elif p._id == 'produto:teclado' %}
+            <img src="{{ url_for('static', filename='images/teclado.png') }}"
+                 alt="Teclado Mecânico"
+                 class="produto-img">
+        {% endif %}
+
+        <h3>{{ p.nome }}</h3>
+
+        <p>{{ p.categoria }}</p>
+
+        <p class="price">
+            R$ {{ "%.2f"|format(p.preco) }}
+        </p>
+
+        <p>Estoque: {{ p.estoque }}</p>
+
+        <form method="post"
+              action="{{ url_for('adicionar', produto_id=p._id) }}">
+            <button class="btn">Adicionar</button>
+        </form>
+
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
